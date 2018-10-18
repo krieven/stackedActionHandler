@@ -1,5 +1,5 @@
 
-var proto= require('../../lib/protoHandler.js');
+var proto= require('../../lib/protoService.js');
 
 function Service(){
 	this.onAdd = function(session, data, state){
