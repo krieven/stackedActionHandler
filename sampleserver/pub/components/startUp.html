@@ -1,0 +1,58 @@
+<import type="html" src="register.html" as="register"></import>
+
+<div as="main-window" style="border:1px solid gray;">
+
+	<div ref="content" style="border:1px solid gray;">
+
+	</div>
+	<script>
+		var currentPanel;
+		var panelsCashe = {};
+		var dispatcher = appContext.dispatcher;
+		this.onSetData = function(input){
+			if(currentPanel){
+				currentPanel.unmount();
+			}
+			var panel = panelsCashe[input.type] =
+				panelsCashe[input.type] || factory.create(input.type+'-panel');
+			panel.mount(this);
+			panel.setData(input.data);
+			currentPanel=panel;
+		};
+		this.onMount = function(){
+			var register = dispatcher.sub('register',function(){
+
+			});
+		};
+
+	</script>
+</div>
+////////////////////////
+<div as="welcome-panel" style="padding:20px;">
+	<h2>Welcome</h2>
+	<array-iterator ref="list">
+		<tab-buttom></tab-buttom>
+	</array-iterator>
+	<script>
+		this.onSetData = function(input){
+			this.ref.list.setData(input, input.length);
+		};
+	</script>
+</div>
+////////////////////////
+<button as="tab-buttom" style="font-size:120%;padding: 20px 10px;">
+	
+	<script>
+		var action = {};
+		this.onSetData = function(input, length){
+			this.innerText = input.title;
+			action = input.data;
+			this.style.width = 100/length+'%';
+		};
+		this.onclick = function(){
+			appContext.socket.send(JSON.stringify(action));
+		};
+	</script>
+</button>
+////////////////////////
+

@@ -1,50 +1,15 @@
+<!DOCTYPE html>
 <html>
 	<head>
-		<title>sample server</title>
-		<script src="/w3view/w3view.js"></script>
-		<script src="/w3view/loader/moduleLoader.js"></script>
-		<script src="/w3view/loader/httpreader.js"></script>
-		<script>
-			var appContext = {};
-
-			var socketHandler={};
-			socketHandler.welcome=function(data){
-				appContext.mainWindow.setData(data);
-			};
-		</script>
+		<title>sample server demo</title>
+		<script src="js/dispatcher.js"></script>
+		<script src="js/application.js"></script>
+		<script src="w3view/w3view.js"></script>
+		<script src="w3view/loader/moduleLoader.js"></script>
+		<script src="w3view/loader/httpreader.js"></script>
 	</head>
 	<body>
-		<h1>random chat</h1>
-		<script async>
-			 moduleLoader(appContext, 'modules/startUp.html', reader, 
-			 	function(factory){
-					var mainWindow = factory.create('main-window');
-					mainWindow.mount(document.body);
-					var socket = new WebSocket('ws://localhost:3030');
-					appContext.socket = socket;
-					appContext.mainWindow = mainWindow;
-					socket.onopen = function(){
-						console.log('Connection established')
-					};
-					socket.onmessage = function(message){
-						var action = JSON.parse(message.data);
-						if(socketHandler[action.type]){
-							socketHandler[action.type](action.data);
-						}
-					};
-					socket.onclose = function(event){
-						if (event.wasClean) {
-							console.log('Connection closed');
-						} else {
-							console.log('Connection interrupted');
-						}
-						console.log('Code: ' + event.code + ' reason: ' + event.reason);
-					};
-					socket.onerror = function(error){
-						console.log('Connection error: ' + error);
-					};
-				}
-			 );
-		</script>
+		<h1>Simple chat</h1>
+		<script async src="js/starter.js"></script>
 	</body>
 </html>
