@@ -3,7 +3,7 @@ var Session = require('../lib/Session.js');
 var ws = require('ws');
 var express = require('express');
 var logger = require('../lib/logger.js');
-var startUp = require('./services/startUp.js');
+var startUp = require('./services/welcome.js');
 
 var srv = express();
 srv.use(express.static(__dirname+'/pub/'));
@@ -17,7 +17,9 @@ srv.listen(port, function(){
 
 var server = new ws.Server({port:3030});
 
-var appContext = {};
+var appContext = {
+	userInfo  : require('./model/userInfo.js')
+};
 function onclosesession(session){
 	session.send('good by');
 	// logger.log(session.getId()+' closed');

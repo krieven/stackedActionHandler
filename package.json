@@ -11,13 +11,14 @@
     "workflow",
     "action",
     "controller",
-    "manager"
+    "manager",
+    "state machine"
   ],
   "author": "V. Dmitriev",
   "license": "ISC",
   "devDependencies": {
     "express": "^4.16.3",
-    "w3view": "git+https://github.com/vitalydmitriev1970/W3View.git",
+    "w3view": "^1.0.5",
     "ws": "^6.0.0"
   },
   "repository": {

@@ -4,25 +4,21 @@ var logger = require('../../lib/logger.js');
 
 function reset(session){
 	var context = session.getContext();
-	if(!context.userInfo){
+	var sessionId = session.getId();
+	var userInfo = context.userInfo.getUserInfo(sessionId);
+	if(!userInfo){
 		session.sendJSON({
-			type: 'switch-panel',
-			data:{
-				type: 'welcome',
-				data: [
-					{title:'login', data:{type:'login'}},
-					{title:'register', data:{type:'register'}}
-				]
-			}
+			type: 'welcome',
+			data: [
+				{title:'login', data:{type:'login'}},
+				{title:'register', data:{type:'register'}}
+			]
 		});
 	} else {
 		session.sendJSON({
-			type: 'switch-panel',
-			data:{
-				type: 'theapp',
-				data: {
-					userInfo: context.userInfo
-				}
+			type: 'theapp',
+			data: {
+				userInfo: userInfo
 			}
 		});
 		session.addService(
@@ -38,7 +34,12 @@ function reset(session){
 function Service(){
 	var me = this;
 	this.onAdd = function(session, data, state){
-		reset(session);
+		session.sendJSON({
+			type: 'welcome',
+			data: {
+				text:'Hello, this is a simple example of stacked action handler'
+			}
+		});
 	};
 
 	var handlers = this.actionHandlers = this.actionHandlers || {};
@@ -48,21 +49,13 @@ function Service(){
 	};
 
 	handlers.register = function(session, action, state){
-		logger.log(action);
-		
 		session.addService(
-			require('./register.js'),
+			require('./register/register.js'),
 			{},
-			function(res){
-				reset(session);
+			function(session, res){
+				me.onAdd(session, {}, state);
 			}
 		);
-	};
-
-	handlers.logoff = function(session, action, state){
-		session.killServicesTill(me);
-		session.getContext().userInfo = null;
-		reset(session);
 	};
 
 }

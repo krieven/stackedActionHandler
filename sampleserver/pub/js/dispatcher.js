@@ -24,8 +24,7 @@ function newDispatcher(){
 			subscribers[type]=subscribers[type] || [];
 			if(typeof listener ==='function' &&
 				subscribers[type].indexOf(listener)>=0){
-				var array = subscribers[type];
-				array.splice(array.indexOf(listener),1);
+				subscribers[type].splice(subscribers[type].indexOf(listener),1);
 			}
 		}
 	};

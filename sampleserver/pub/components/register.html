@@ -1,17 +1,168 @@
-<div as="main-panel">
-	<h2>Register</h2>
+<div as="main-panel" style="height:100%;">
+	<h2>Registration</h2>
 	<div ref="content">
 
 	</div>
 	<blockquote>no any warranties</blockquote>
 	<script>
 
+		var currentStep;
+		var dispatcher = appContext.dispatcher;
+	
+		var firstStep, secondStep;
+
+		this.onStart = function(){
+
+			firstStep = dispatcher.sub('first-step', function(data){
+				if(currentStep) currentStep.unmount();
+				currentStep = factory.create('first-step');
+				currentStep.mount(this);
+				currentStep.setData(data);
+			}.bind(this));
+
+			secondStep = dispatcher.sub('second-step', function(data){
+				if(currentStep) currentStep.unmount();
+				currentStep = factory.create('second-step');
+				currentStep.mount(this);
+				currentStep.setData(data);
+			}.bind(this));
+
+		};
+
+		this.onStop = function(){
+			dispatcher.unsub('first-step', firstStep);
+			dispatcher.unsub('second-step', secondStep);
+		}
+
+		this.onMount = function(){
+			this.start();
+		};
+		this.onUnmount = function(){
+			this.stop();
+		};
 	</script>
 </div>
 
 <div as="first-step">
 	<div>
-		<label>Enter your name: <input ></label>
+		<label>Enter your name: <input ref="login" autofocus></label>
 	</div>
-	<div></div>
+	<div>
+		<label>Enter password: <input type="password" ref="password" ></label>
+	</div>
+	<div>
+		<label>Confirm password: <input type="password" ref="confirm"></label>
+	</div>
+	<button ref="exit">exit</button>
+	<button ref="ok">next &gt;&gt; </button>
+	<div ref="message" style="color: red;"></div>
+	<script>
+
+		var validate = function (){
+			var message = [];
+			if(!this.ref.login.value.trim()){
+				message.push('Enter your name, please');
+			}
+			if(!this.ref.password.value.trim()){
+				message.push('Password is required');
+			}
+			if(!this.ref.confirm.value.trim()){
+				message.push('Please confirm password');
+			}
+			if(this.ref.password.value.trim() != this.ref.confirm.value.trim()){
+				message.push('Password should be properly confirmed');
+			}
+			if(message.length==0) return true;
+			this.ref.message.innerHTML = message.join('<br>');
+			return false;
+		}.bind(this);
+
+		this.onSetData = function(data){
+			data = data || {};
+			this.ref.login.value = (data.userInfo || {}).name || '';
+		};
+
+		this.ref.ok.onclick = function(){
+			if(!validate())return false;
+			appContext.socket.send(JSON.stringify({
+				type: 'name',
+				data: {
+					login: this.ref.login.value,
+					password: this.ref.password.value
+				}
+			}));
+			this.ref.message.innerText = '';
+			return false;
+		}.bind(this);
+
+		this.ref.exit.onclick = function(){
+			appContext.socket.send(JSON.stringify({
+				type: 'exit'
+			}));
+		};
+
+		this.onkeydown = function(e){
+			if(e.which !== 13) return;
+			this.ref.ok.onclick();
+			return false;
+		}.bind(this);
+
+		this.onMount = function(){
+			this.ref.login.focus();
+		}
+
+	</script>
+</div>
+
+<div as="second-step">
+	<div>
+		<label>Enter password: <input type="password" ref="password" autofocus></label>
+		&nbsp;
+		<label>Confirm password: <input type="password" ref="confirm"></label>
+		<button ref="ok">next &gt;&gt; </button>
+	</div>
+	<div ref="message" style="color:red;"></div>
+	<script>
+	
+		var focusSeq = ['password', 'confirm', 'ok']
+		this.onkeypress = function(e){
+			if(e.which !== 13) return;
+			var nextFocus = focusSeq.indexOf( e.target.getAttribute('_ref') ) + 1;
+			if(this.ref[focusSeq[nextFocus]]){
+				this.ref[focusSeq[nextFocus]].focus();
+			} else {
+				this.ref[focusSeq[0]].focus();
+			}
+			this.ref.ok.onclick(e);
+		}.bind(this);
+
+		this.ref.ok.onclick = function(e){
+			e.preventDefault();
+			this.ref.message.innerText='';
+			if(!this.ref.password.value.trim()){
+				this.ref.message.innerText='Password should be';
+				this.ref.password.focus();
+				return;
+			}
+			if(this.ref.password.value != this.ref.confirm.value){
+				this.ref.message.innerText='Password should be properly confirmed';
+				this.ref.confirm.focus();
+				return;
+			}
+
+			appContext.socket.send(JSON.stringify(
+					{
+						type: 'password',
+						data: this.ref.password.value.trim()
+					}
+				)
+			);
+
+		}.bind(this);
+
+		this.onMount = function(){
+			this.ref.password.focus();
+		};
+
+	</script>
 </div>

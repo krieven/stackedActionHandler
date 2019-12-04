@@ -1,56 +1,71 @@
 <import type="html" src="register.html" as="register"></import>
 
-<div as="main-window" style="border:1px solid gray;">
+<div as="main-window" style="border:1px solid gray;position:fixed; width:100%;height:80%;left:0;top:10%;">
 
-	<div ref="content" style="border:1px solid gray;">
+	<div ref="content" style="border:1px solid gray;padding:20px;">
 
+	</div>
+	
+	<div style="padding:20px;">
+		<a target="_blank" href="https://github.com/vitalydmitriev1970/stackedActionHandler">
+			You can get this chat from github
+		</a>
 	</div>
 	<script>
 		var currentPanel;
-		var panelsCashe = {};
 		var dispatcher = appContext.dispatcher;
-		this.onSetData = function(input){
-			if(currentPanel){
-				currentPanel.unmount();
-			}
-			var panel = panelsCashe[input.type] =
-				panelsCashe[input.type] || factory.create(input.type+'-panel');
-			panel.mount(this);
-			panel.setData(input.data);
-			currentPanel=panel;
-		};
-		this.onMount = function(){
-			var register = dispatcher.sub('register',function(){
+		
+		var register;
+		var welcome;
 
-			});
+		this.onStart = function(){
+
+			welcome = dispatcher.sub('welcome', function(data){
+				if(currentPanel) {currentPanel.unmount();}
+				currentPanel = factory.create('welcome-panel');
+				currentPanel.mount(this);
+				currentPanel.setData(data.data);
+			}.bind(this));
+
+			register = dispatcher.sub('register',function(data){
+				if(currentPanel) {currentPanel.unmount();}
+				currentPanel = factory.create('register:main-panel');
+				currentPanel.mount(this);
+				currentPanel.setData(data.data);
+			}.bind(this));
+		};
+
+		this.onStop = function(){
+			dispatcher.unsub('register', register);
+			dispatcher.unsub('welcome', welcome);
 		};
 
 	</script>
 </div>
 ////////////////////////
-<div as="welcome-panel" style="padding:20px;">
+<div as="welcome-panel">
 	<h2>Welcome</h2>
-	<array-iterator ref="list">
-		<tab-buttom></tab-buttom>
-	</array-iterator>
+	<div ref="text" style="padding:20px 0;"></div>
+	<div>
+		<tab-button data-action="login">login</tab-button>
+		<tab-button data-action="register">register</tab-button>
+	</div>
 	<script>
 		this.onSetData = function(input){
-			this.ref.list.setData(input, input.length);
+			this.ref.text.innerText=input.text;
 		};
 	</script>
 </div>
 ////////////////////////
-<button as="tab-buttom" style="font-size:120%;padding: 20px 10px;">
+<button as="tab-button" style="font-size:120%;padding: 20px 10px;width:50%">
 	
 	<script>
-		var action = {};
-		this.onSetData = function(input, length){
-			this.innerText = input.title;
-			action = input.data;
-			this.style.width = 100/length+'%';
+		var action = '';
+		this.onMount = function(input, length){
+			action = this.getAttribute('data-action');
 		};
 		this.onclick = function(){
-			appContext.socket.send(JSON.stringify(action));
+			appContext.socket.send(JSON.stringify({type:action}));
 		};
 	</script>
 </button>
