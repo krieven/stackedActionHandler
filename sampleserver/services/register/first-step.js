@@ -3,7 +3,7 @@ var logger = require('../../../lib/logger.js');
 var usersData = require('../../model/userInfo');
 
 function Service(){
-	var handlers = this.actionHandlers || {};
+	var handlers = this.actionHandlers = {};
 
 	this.onAdd = function(session, data, state){
 		session.sendJSON(
